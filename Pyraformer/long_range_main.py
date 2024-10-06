@@ -284,7 +284,7 @@ def parse_args():
 
     # Path parameters
     parser.add_argument('-data', type=str, default='ETTh1')
-    parser.add_argument('-root_path', type=str, default='./data/ETT/', help='root path of the data file')
+    parser.add_argument('-root_path', type=str, default='../data', help='root path of the data file')
     parser.add_argument('-data_path', type=str, default='ETTh1.csv', help='data file')
 
     # Dataloader parameters.

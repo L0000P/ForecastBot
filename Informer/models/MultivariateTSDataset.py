@@ -134,13 +134,13 @@ class MultivariateTSDataset(torch.utils.data.Dataset):
         feature_time_mtx_past   = torch.randn((self.context_length    , training_window_torch.shape[1]    ))
         feature_time_mtx_future = torch.randn((self.prediction_length , prediction_window_torch.shape[1]  ))
         
-        ft_time_past = self.date_to_vector(str(self.data_df.loc[time_id]['time_stamp']))
+        ft_time_past = self.date_to_vector(str(self.data_df.loc[time_id]['date']))
         # print(self.date_to_vector(str(self.data_df.loc[time_id]['time_stamp'])))
         # print(ft_time_past.shape)
         
         # vettore features per data
-        ft_time_past   = torch.FloatTensor(np.array([MultivariateTSDataset.date_to_vector(str(self.data_df.loc[time_id]['time_stamp'])) for time_id_item in range(self.context_length)]))
-        ft_time_future = torch.FloatTensor(np.array([MultivariateTSDataset.date_to_vector(str(self.data_df.loc[time_id]['time_stamp'])) for time_id_item in range(self.prediction_length)]))
+        ft_time_past   = torch.FloatTensor(np.array([MultivariateTSDataset.date_to_vector(str(self.data_df.loc[time_id]['date'])) for time_id_item in range(self.context_length)]))
+        ft_time_future = torch.FloatTensor(np.array([MultivariateTSDataset.date_to_vector(str(self.data_df.loc[time_id]['date'])) for time_id_item in range(self.prediction_length)]))
         # tutte le osservazioni passate
         past_observed_mask = torch.ones_like(training_window_torch)
 

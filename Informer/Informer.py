@@ -28,22 +28,16 @@ timestamp_column = input("Insert timestamp column name: ")
 csv_files = glob.glob(input("Insert Path of csv files: "))
 delimiter = input("Insert delimiter of dataset: ")
 index_start = input("Insert start index dataset: ")
-column_search_start = input("Insert start string column search: ")
-column_search_end = input("Insert end string column search: ")
 resume_from_checkpoint = input("Resume from checkpoint?(<y>,n): ")
 
 if not timestamp_column:
-    timestamp_column = "time_stamp" 
+    timestamp_column = "date" 
 if not csv_files:
-    csv_files = glob.glob("../data/SCADA_Turbine/WindFarmA/datasets/0.csv") 
+    csv_files = glob.glob("../data/ETTh1.csv") 
 if not delimiter:
-    delimiter = ";"
+    delimiter = ","
 if not index_start:
-    index_start = 5
-if not column_search_start:
-    column_search_start = "sensor"
-if not column_search_end:
-    column_search_end = "avg"
+    index_start = 1
 if resume_from_checkpoint == "" or resume_from_checkpoint == "y" or resume_from_checkpoint == "yes":
     resume_from_checkpoint = True
 if not(resume_from_checkpoint == "" or resume_from_checkpoint == "y" or resume_from_checkpoint == "yes"):
@@ -51,8 +45,9 @@ if not(resume_from_checkpoint == "" or resume_from_checkpoint == "y" or resume_f
 
 dataframes = [pd.read_csv(f, parse_dates=[timestamp_column], delimiter=delimiter) for f in csv_files] # Read CSV Files.
 dataset = pd.concat(dataframes, ignore_index=True) # Concatenate DataFrames.
-past_columns = [col for col in dataset.columns[index_start:] if col.startswith(column_search_start) and col.endswith(column_search_end)] # Forecast Columns.
-forecast_columns = [col for col in dataset.columns[index_start:] if col.startswith(column_search_start)and col.endswith(column_search_end)] # Forecast Columns.
+print(dataset.columns)
+past_columns = [col for col in dataset.columns[index_start:]] # Forecast Columns.
+forecast_columns = [col for col in dataset.columns[index_start:]] # Forecast Columns.
 
 sample_number    = len(dataset)   # Sample Number 
 num_train        = int(sample_number * 0.7) # Num Train
@@ -69,7 +64,7 @@ test_data  = dataset.iloc[f3:e3, :].reset_index(drop=True) # Test Data
 
 train_dataset = MultivariateTSDataset( # Train Dataset
     train_data, # Train Data
-    timestamp_column  = "time_stamp", # Time Stamp Column
+    timestamp_column  = "date", # Time Stamp Column
     training_columns  = past_columns, # Training Columns
     target_columns    = forecast_columns, # Target Columns
     context_length    = context_length, # Context Length
@@ -78,7 +73,7 @@ train_dataset = MultivariateTSDataset( # Train Dataset
 
 valid_dataset = MultivariateTSDataset(
     valid_data, #  Valid Data
-    timestamp_column  = "time_stamp", # Time Stamp Column
+    timestamp_column  = "date", # Time Stamp Column
     training_columns  = past_columns, # Past Columns
     target_columns    = forecast_columns, # Forecast Columns
     context_length    = context_length, # Context Length
@@ -87,7 +82,7 @@ valid_dataset = MultivariateTSDataset(
 
 test_dataset  = MultivariateTSDataset( # Test Dataset
     test_data, # Test Data
-    timestamp_column  = "time_stamp", # Time Stamp Column
+    timestamp_column  = "date", # Time Stamp Column
     training_columns  = past_columns, # Training Columns
     target_columns    = forecast_columns, # Target Columns
     context_length    = context_length, # Context Length
