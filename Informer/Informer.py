@@ -1,6 +1,7 @@
 import glob
 import pandas as pd
-
+from models.MultivariateTSDataset import MultivariateTSDataset
+from pathlib import Path
 from transformers import (
     EarlyStoppingCallback,
     InformerConfig,
@@ -9,8 +10,6 @@ from transformers import (
     TrainingArguments,
 )
 
-from models.MultivariateTSDataset import MultivariateTSDataset
-from pathlib import Path
 
 log_path   = "Data/Log/"      # Log Path
 model_path = "Data/Model/"    # Model Path    
@@ -24,20 +23,14 @@ patch_length     = 64 # Patch Length.
 num_workers      = 8 # Number of Workers.  
 batch_size       = 4 # Batch Size.
 
-timestamp_column = input("Insert timestamp column name: ")
-csv_files = glob.glob(input("Insert Path of csv files: "))
-delimiter = input("Insert delimiter of dataset: ")
-index_start = input("Insert start index dataset: ")
-resume_from_checkpoint = input("Resume from checkpoint?(<y>,n): ")
+# Ask user for input
+timestamp_column = input("Insert timestamp column name<|date|>:") or "date"
+csv_files = glob.glob(input("Insert Path of csv files<|../data/ETTh1.csv|>: ")) or ["../data/ETTh1.csv"]
+delimiter = input("Insert delimiter of dataset:<|,|>:") or ","
+index_start = input("Insert start index dataset:<|1|>:") or 1
+resume_from_checkpoint = input("Resume from checkpoint?(<y>,n):") or "y"
 
-if not timestamp_column:
-    timestamp_column = "date" 
-if not csv_files:
-    csv_files = glob.glob("../data/ETTh1.csv") 
-if not delimiter:
-    delimiter = ","
-if not index_start:
-    index_start = 1
+# Check if the user wants to resume from a checkpoint
 if resume_from_checkpoint == "" or resume_from_checkpoint == "y" or resume_from_checkpoint == "yes":
     resume_from_checkpoint = True
 if not(resume_from_checkpoint == "" or resume_from_checkpoint == "y" or resume_from_checkpoint == "yes"):
@@ -45,7 +38,6 @@ if not(resume_from_checkpoint == "" or resume_from_checkpoint == "y" or resume_f
 
 dataframes = [pd.read_csv(f, parse_dates=[timestamp_column], delimiter=delimiter) for f in csv_files] # Read CSV Files.
 dataset = pd.concat(dataframes, ignore_index=True) # Concatenate DataFrames.
-print(dataset.columns)
 past_columns = [col for col in dataset.columns[index_start:]] # Forecast Columns.
 forecast_columns = [col for col in dataset.columns[index_start:]] # Forecast Columns.
 
@@ -64,7 +56,7 @@ test_data  = dataset.iloc[f3:e3, :].reset_index(drop=True) # Test Data
 
 train_dataset = MultivariateTSDataset( # Train Dataset
     train_data, # Train Data
-    timestamp_column  = "date", # Time Stamp Column
+    timestamp_column  = timestamp_column, # Time Stamp Column
     training_columns  = past_columns, # Training Columns
     target_columns    = forecast_columns, # Target Columns
     context_length    = context_length, # Context Length
@@ -73,7 +65,7 @@ train_dataset = MultivariateTSDataset( # Train Dataset
 
 valid_dataset = MultivariateTSDataset(
     valid_data, #  Valid Data
-    timestamp_column  = "date", # Time Stamp Column
+    timestamp_column  = timestamp_column, # Time Stamp Column
     training_columns  = past_columns, # Past Columns
     target_columns    = forecast_columns, # Forecast Columns
     context_length    = context_length, # Context Length
@@ -82,7 +74,7 @@ valid_dataset = MultivariateTSDataset(
 
 test_dataset  = MultivariateTSDataset( # Test Dataset
     test_data, # Test Data
-    timestamp_column  = "date", # Time Stamp Column
+    timestamp_column  = timestamp_column, # Time Stamp Column
     training_columns  = past_columns, # Training Columns
     target_columns    = forecast_columns, # Target Columns
     context_length    = context_length, # Context Length
