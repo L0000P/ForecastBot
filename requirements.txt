@@ -1,0 +1,9 @@
+pynvml==11.4.1
+torch>=1.10.0
+reformer-pytorch==1.4.3
+tqdm==4.62.2
+git+https://github.com/IBM/tsfm.git
+transformers==4.40.1
+tensorboardX==2.6.2.2
+matplotlib==3.8.4
+accelerate==0.30.1
