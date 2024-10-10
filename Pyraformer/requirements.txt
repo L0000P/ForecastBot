@@ -1,0 +1,10 @@
+pynvml
+torch
+reformer-pytorch
+tqdm
+git+https://github.com/IBM/tsfm.git
+transformers
+tensorboardX
+matplotlib
+accelerate
+pandas

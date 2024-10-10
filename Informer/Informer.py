@@ -10,7 +10,6 @@ from transformers import (
     TrainingArguments,
 )
 
-
 log_path   = "Data/Log/"      # Log Path
 model_path = "Data/Model/"    # Model Path    
 
@@ -112,7 +111,7 @@ training_args  = TrainingArguments( # Training Arguments
     overwrite_output_dir        = True, # Overwrite Output Dir
     num_train_epochs            = 200, # Num Train Epochs
     do_eval                     = True, # Do Eval
-    evaluation_strategy         = "epoch", # Evaluation Strategy
+    eval_strategy               = "epoch", # Evaluation Strategy
     per_device_train_batch_size = batch_size, # Per Device Train Batch Size
     per_device_eval_batch_size  = batch_size, # Per Device Eval Batch Size
     save_strategy               = "epoch", # Save Strategy

@@ -60,16 +60,21 @@ dataset = dataset[~((dataset[numeric_columns] < (Q1 - 1.5 * IQR)) | (dataset[num
 dataset.ffill(inplace=True)
 dataset.bfill(inplace=True)
 
-# Feature Engineering: adding time-based features
-dataset["day_of_week"] = dataset[timestamp_column].dt.dayofweek
-dataset["day_of_month"] = dataset[timestamp_column].dt.day
-dataset["month"] = dataset[timestamp_column].dt.month
-dataset["hour"] = dataset[timestamp_column].dt.hour
+# Feature Engineering: adding time-based features and casting them to float32 immediately
+dataset["day_of_week"] = dataset[timestamp_column].dt.dayofweek.astype(np.float32)
+dataset["day_of_month"] = dataset[timestamp_column].dt.day.astype(np.float32)
+dataset["month"] = dataset[timestamp_column].dt.month.astype(np.float32)
+dataset["hour"] = dataset[timestamp_column].dt.hour.astype(np.float32)
 
 # Scale the dataset using StandardScaler or RobustScaler
 scaler = RobustScaler()
 scaled_values = scaler.fit_transform(dataset.iloc[:, index_start:])
-dataset.iloc[:, index_start:] = scaled_values
+
+# Ensure the columns are compatible with the scaled values (i.e., float32)
+dataset.iloc[:, index_start:] = dataset.iloc[:, index_start:].astype(np.float32)
+
+# Assign the scaled values (which are also float32)
+dataset.iloc[:, index_start:] = scaled_values.astype(np.float32)
 
 # Adding Lag Features and Rolling Statistics (Feature Engineering)
 for col in dataset.columns[index_start:]:
@@ -157,7 +162,7 @@ training_args = TrainingArguments(
     learning_rate=5e-6,  # Further lower learning rate for stability
     weight_decay=0.01,  # Added weight decay for regularization
     do_eval=True,
-    evaluation_strategy="epoch",
+    eval_strategy="epoch",
     per_device_train_batch_size=batch_size,
     per_device_eval_batch_size=batch_size,
     dataloader_num_workers=num_workers,

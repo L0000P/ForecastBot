@@ -375,4 +375,3 @@ if __name__ == '__main__':
     all_perf = np.array(all_perf)
     all_perf = all_perf.mean(0)
     print('Average Metrics: {}'.format(all_perf))
-
