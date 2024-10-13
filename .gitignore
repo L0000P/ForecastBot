@@ -3,5 +3,6 @@ data
 Data
 __pycache__
 cufile.log
-log
+*.log
 Pyraformer/models
+plots
