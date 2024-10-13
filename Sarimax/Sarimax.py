@@ -1,3 +1,4 @@
+import cudf
 import pandas as pd
 from statsmodels.tsa.statespace.sarimax import SARIMAX
 from sklearn.metrics import mean_squared_error
@@ -5,13 +6,24 @@ import matplotlib.pyplot as plt
 from tqdm import tqdm
 import sys
 import warnings
+import os
 
-# Load the CSV file into a pandas DataFrame
+# Check if CUDA is available (assuming RAPIDS is properly set up in the environment)
+cuda_available = os.environ.get('CUDA_VISIBLE_DEVICES') is not None
+
+# Create a directory for plots if it doesn't exist
+plot_dir = "/workspace/Sarimax/plots"
+os.makedirs(plot_dir, exist_ok=True)
+
+# Load the CSV file into a pandas or cudf DataFrame
 file_path = '../data/ETTh1.csv'  # Update this with your CSV file path
-data = pd.read_csv(file_path)
+if cuda_available:
+    data = cudf.read_csv(file_path)
+else:
+    data = pd.read_csv(file_path)
 
 # Convert the 'date' column to datetime format and sort the DataFrame
-data['date'] = pd.to_datetime(data['date'])
+data['date'] = pd.to_datetime(data['date'].to_pandas() if cuda_available else data['date'])
 data = data.sort_values('date')
 
 # Set the 'date' column as the index
@@ -40,10 +52,10 @@ with tqdm(total=total_iterations, desc="Fitting SARIMAX models", file=sys.stdout
         for seasonal_order in seasonal_orders:
             try:
                 # Create and fit the SARIMAX model
-                model = SARIMAX(data[target_column],
+                model = SARIMAX(data[target_column].to_pandas() if cuda_available else data[target_column],
                                 order=order,
                                 seasonal_order=seasonal_order,
-                                exog=data[feature_columns])
+                                exog=data[feature_columns].to_pandas() if cuda_available else data[feature_columns])
                 
                 # Catch all warnings
                 with warnings.catch_warnings(record=True) as w:
@@ -70,27 +82,28 @@ with tqdm(total=total_iterations, desc="Fitting SARIMAX models", file=sys.stdout
 # If you found the best model, make predictions
 if best_model:
     forecast_steps = 10  # Number of steps to forecast
-    forecast = best_model.get_forecast(steps=forecast_steps, exog=data[feature_columns].iloc[-forecast_steps:])
-    forecast_index = pd.date_range(start=data.index[-1], periods=forecast_steps + 1, freq='H')[1:]
+    forecast = best_model.get_forecast(steps=forecast_steps, exog=(data[feature_columns].iloc[-forecast_steps:].to_pandas() if cuda_available else data[feature_columns].iloc[-forecast_steps:]))
+    forecast_index = pd.date_range(start=data.index[-1].to_pandas() if cuda_available else data.index[-1], periods=forecast_steps + 1, freq='H')[1:]
 
     # Extract forecast values
     forecast_values = forecast.predicted_mean
     
     # Calculate MSE between the actual values and the forecast
     actual_values = data[target_column].iloc[-forecast_steps:]  # Actual values for the forecasted period
-    mse = mean_squared_error(actual_values, forecast_values)
+    mse = mean_squared_error(actual_values.to_pandas() if cuda_available else actual_values, forecast_values)
 
     # Print MSE
     print(f"Mean Squared Error (MSE): {mse}")
 
-    # Visualize results
+    # Save plot results
     plt.figure(figsize=(10, 5))
-    plt.plot(data.index, data[target_column], label='Actual')
+    plt.plot(data.index.to_pandas() if cuda_available else data.index, data[target_column].to_pandas() if cuda_available else data[target_column], label='Actual')
     plt.plot(forecast_index, forecast_values, label='Forecast', color='red')
     plt.title('SARIMAX Forecast')
     plt.xlabel('Date')
     plt.ylabel(target_column)
     plt.legend()
-    plt.show()
+    plt.savefig(f"{plot_dir}/sarimax_forecast.png")
+    plt.close()
 else:
     print("No model was fitted successfully.", file=sys.stderr)
