@@ -1,5 +1,6 @@
-pandas
-statsmodels
-scikit-learn
-matplotlib
-tqdm
+pandas==1.5.3
+statsmodels==0.14.4
+scikit-learn==1.5.2
+matplotlib==3.9.2
+tqdm==4.66.5
+numpy==1.24.0

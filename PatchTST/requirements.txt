@@ -1,9 +1,9 @@
-pynvml
-torch
-reformer-pytorch
-tqdm
+pynvml==11.5.3
+torch==2.4.1
+reformer-pytorch==1.4.4
+tqdm==4.66.5
 git+https://github.com/IBM/tsfm.git
-transformers
-accelerate
-pandas
-scikit-learn
+transformers==4.45.2
+accelerate==1.0.1
+pandas==2.2.3
+scikit-learn==1.5.2
