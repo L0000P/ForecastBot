@@ -1,10 +1,11 @@
 version: '3.8'
 
 services:
+  # Container for transformers with GPU support
   rapids:
     container_name: transformers
     build:
-      context: .  # Costruisce l'immagine usando il Dockerfile nella directory corrente
+      context: .
     deploy:
       resources:
         reservations:
@@ -13,11 +14,28 @@ services:
               count: all
               capabilities: [gpu]
     volumes:
-      - ./:/workspace  # Monta l'intera directory corrente
-    ports:
-      - "8888:8888"  # Jupyter Notebook
-      - "8787:8787"  # Dask Dashboard
-      - "8786:8786"  # Dask Scheduler
+      - ./:/workspace  # Mounts the entire current directory
     environment:
       - NVIDIA_VISIBLE_DEVICES=all
       - NVIDIA_DRIVER_CAPABILITIES=compute,utility
+    networks:
+      - app-network
+
+  # Web app container (Streamlit + FastAPI)
+  webapp:
+    container_name: web_app
+    build:
+      context: ./app  # Assumes a Dockerfile exists in the webapp directory
+    ports:
+      - "8501:8501"  # Streamlit port
+      - "8000:8000"  # FastAPI port
+    volumes:
+      - ./app:/app  # Mounts the webapp folder
+    depends_on:
+      - rapids  # Ensure 'rapids' container is up before 'webapp'
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge

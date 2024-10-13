@@ -4,9 +4,6 @@ FROM rapidsai/rapidsai:cuda11.8-runtime-ubuntu22.04-py3.10
 # Set up the working directory
 WORKDIR /workspace
 
-# Install JupyterLab
-RUN pip install jupyterlab
-
 # Copy requirements files from the subdirectories into the container
 COPY Arima/requirements.txt /workspace/requirements_arima.txt
 COPY Sarimax/requirements.txt /workspace/requirements_sarimax.txt
@@ -41,9 +38,3 @@ RUN conda install -n base -c conda-forge mamba && \
     mamba create -n pyraformer python=3.9 && \
     mamba install -n pyraformer cudf=23.6 cupy=12.0.0 cudatoolkit=11.8 -c rapidsai -c conda-forge -c defaults && \
     mamba run -n pyraformer pip install -r /workspace/requirements_pyraformer.txt
-
-# Expose port for JupyterLab
-EXPOSE 8888
-
-# Run JupyterLab
-CMD ["jupyter", "lab", "--ip=0.0.0.0", "--port=8888", "--no-browser", "--allow-root"]
