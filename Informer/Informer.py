@@ -9,6 +9,8 @@ from transformers import (
     Trainer,
     TrainingArguments,
 )
+import numpy as np
+from sklearn.metrics import mean_squared_error
 
 log_path   = "Data/Log/"      # Log Path
 model_path = "Data/Model/"    # Model Path    
@@ -122,7 +124,7 @@ training_args  = TrainingArguments( # Training Arguments
     metric_for_best_model       = "eval_loss", # Metric For Best Model
     greater_is_better           = False, # Greater Is Better
     label_names                 = ["future_values"], # Label Names
-    report_to                  = "none" # Report To
+    report_to                   = "none" # Report To
 )
 
 early_stopping_callback = EarlyStoppingCallback( # Early Stopping Callback
@@ -139,4 +141,17 @@ trainer = Trainer( # Trainer
 )
 
 trainer.train(resume_from_checkpoint=resume_from_checkpoint) # Train
- 
+
+# Make predictions on the test dataset
+print("Generating predictions on the test dataset...")
+test_predictions = trainer.predict(test_dataset)
+
+# Extract the predicted and actual values
+y_true = np.array([example['future_values'] for example in test_dataset])
+y_pred = test_predictions.predictions
+
+# Calculate the MSE
+mse = mean_squared_error(y_true, y_pred)
+
+# Print the MSE
+print(f"Mean Squared Error on the test dataset: {mse:.4f}")
