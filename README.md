@@ -38,7 +38,7 @@ Ensure that you have Docker and Docker Compose installed on your system. If not,
 1. **Clone the Repository**
    Clone this repository to your local machine.
    ```bash
-   git clone https://github.com/yourusername/ForecastHub.git
+   git clone https://github.com/L0000P/ForecastHub.git
    cd ForecastHub
     ```
 2. **Download Dataset**
