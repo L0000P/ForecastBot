@@ -1,19 +1,23 @@
-# ForecastHub
-**ForecastHub** is a web application designed to allow users to interact with transformer models 
-(such as Informer, PatchTST, Pyraformer) and traditional forecasting models (ARIMA, SARIMAX) 
-via a user-friendly interface built using **Streamlit** and **FastAPI**. 
-The app provides options to select a recommended model, load a dataset, 
-configure parameters for training and evaluation, and visualize the results.
+# ForecastBot
+**ForecastBot** is a web application designed to provide users with an intelligent chatbot interface that helps 
+them select and interact with forecasting models, powered by a Large Language Model (LLM). The chatbot guides users 
+through the process of selecting a model based on their dataset and specific parameters, using **Streamlit** for the 
+user interface and **FastAPI** for the backend.
+
+The app integrates both advanced transformer-based forecasting models (such as Informer, PatchTST, Pyraformer) 
+and traditional models (ARIMA, SARIMAX), offering a seamless experience for model selection, dataset configuration, 
+and result visualization.
 
 ## **Features**
-- **User Interface**: Streamlit-based interface for model selection, training, and evaluation.
+- **Chatbot Interface**: An interactive chatbot built with LLM capabilities, allowing users to interact naturally 
+  and get model recommendations based on their input.
 - **Model Support**: Includes the following forecasting models:
   - Informer
   - PatchTST
   - Pyraformer
   - ARIMA
   - SARIMAX
-- **Visualization**: Provides interactive graphs and charts to display model performance.
+- **Visualization**: Interactive graphs and charts to display model performance.
 
 ## **Dataset Tested**
 By default, the models use the **ETTh1** dataset, which has been tested by training and evaluating models using both **GPU** and **CPU** environments. The **GPU** testing was conducted using a **container** built with **RapidsAI**, leveraging the power of **CUDA** for accelerated computation. Similarly, the models were also tested on a **CPU**-only environment for comparison.
@@ -38,8 +42,8 @@ Ensure that you have Docker and Docker Compose installed on your system. If not,
 1. **Clone the Repository**
    Clone this repository to your local machine.
    ```bash
-   git clone https://github.com/L0000P/ForecastHub.git
-   cd ForecastHub
+    git clone https://github.com/L0000P/ForecastBot.git
+    cd ForecastBot
     ```
 2. **Download Dataset**
     Download the ETTh1 dataset from [here](https://github.com/zhouhaoyi/ETDataset/blob/main/ETT-small/ETTh1.csv).
