@@ -4,6 +4,7 @@ import glob
 import warnings
 import torch
 from pathlib import Path
+from sklearn.metrics import mean_squared_error
 from sklearn.preprocessing import StandardScaler, RobustScaler
 from tsfm_public.toolkit.dataset import ForecastDFDataset
 from models.ForecastDFDataset import ForecastDFDataset
@@ -15,7 +16,6 @@ from transformers import (
     Trainer,
     TrainingArguments
 )
-from sklearn.metrics import mean_squared_error
 
 # Ignore Torch Warnings.
 warnings.filterwarnings("ignore", module="torch")
@@ -71,10 +71,10 @@ scaler = RobustScaler()
 scaled_values = scaler.fit_transform(dataset.iloc[:, index_start:])
 
 # Ensure the columns are compatible with the scaled values (i.e., float32)
-dataset.iloc[:, index_start:] = dataset.iloc[:, index_start:].astype(np.float32)
+dataset[dataset.columns[index_start:]] = dataset[dataset.columns[index_start:]].astype(np.float32)
 
 # Assign the scaled values (which are also float32)
-dataset.iloc[:, index_start:] = scaled_values.astype(np.float32)
+dataset[dataset.columns[index_start:]] = scaled_values.astype(np.float32)
 
 # Adding Lag Features and Rolling Statistics (Feature Engineering)
 for col in dataset.columns[index_start:]:
@@ -152,7 +152,6 @@ print(f"Using device: {device}")
 
 # Ensure the model is moved to the GPU (if available)
 model.to(device)
-
 
 # Training Arguments with adjusted epochs and learning rate
 training_args = TrainingArguments(
