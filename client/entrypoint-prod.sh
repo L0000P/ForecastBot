@@ -1,2 +1,2 @@
 #!/bin/sh
-streamlit run main.py
+streamlit run forecastBot.py
