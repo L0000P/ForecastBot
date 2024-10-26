@@ -1,0 +1,47 @@
+services:
+  server:
+    container_name: forecastbot_server
+    image: L0000P/forecastbot_server
+    restart: unless-stopped
+    build:
+      context: ./server
+      dockerfile: ./Dockerfile
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    env_file:
+      - path: .env
+        required: true
+    ports:
+      - "8000:8000"
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=compute,utility
+      - ENV=production
+    networks:
+      - app-network
+
+  client:
+    container_name: forecastbot_client
+    image: L0000P/forecastbot_client
+    restart: unless-stopped
+    build:
+      context: ./client/
+      dockerfile: ./Dockerfile
+    env_file:
+      - path: .env
+        required: true
+    ports:
+      - "8501:8501" 
+    networks:
+      - app-network
+    environment:
+      - ENV=production
+
+networks:
+  app-network:
+    driver: bridge

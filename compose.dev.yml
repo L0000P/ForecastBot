@@ -1,0 +1,39 @@
+services:
+  server:
+    container_name: forecastbot_server-dev
+    image: rapidsai/rapidsai:cuda11.8-runtime-ubuntu22.04-py3.10
+    entrypoint: /bin/sh ./entrypoint-dev.sh
+    working_dir: /server
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    env_file:
+      - path: .env
+        required: true
+    ports:
+      - "8000:8000"
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=compute,utility
+      - ENV=development
+    volumes:
+      - ./server:/server/
+  
+  client:
+    container_name: forecastbot_client-dev
+    image: python:3.10-slim
+    entrypoint: /bin/sh ./entrypoint-dev.sh
+    working_dir: /client
+    env_file:
+      - path: .env
+        required: true
+    ports:
+      - "8501:8501"
+    environment:
+      - ENV=development
+    volumes:
+      - ./client:/client/
