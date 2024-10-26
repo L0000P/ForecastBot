@@ -6,3 +6,5 @@ cufile.log
 *.log
 Pyraformer/models
 plots
+.env
+*.pth
