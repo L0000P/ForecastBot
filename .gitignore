@@ -8,3 +8,5 @@ Pyraformer/models
 plots
 .env
 *.pth
+results
+*.todo
