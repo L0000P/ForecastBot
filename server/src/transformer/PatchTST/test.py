@@ -23,7 +23,7 @@ patch_tst.load_data([csv_file])
 patch_tst.configure_model()
 
 # Train the model
-#patch_tst.train(epochs=20, learning_rate=5e-6)
+patch_tst.train(epochs=20, learning_rate=5e-6)
 
 # Load the model (skip if already trained)
 patch_tst.load_model()
