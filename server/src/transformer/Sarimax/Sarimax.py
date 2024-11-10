@@ -10,7 +10,13 @@ from tqdm import tqdm
 import joblib
 
 class Sarimax:
-    def __init__(self, dataset_path, target_column, feature_columns, timestamp_column='date', use_gpu='yes', results_dir="/server/src/transformers/Sarimax/results"):
+    def __init__(self, 
+                 dataset_path="/server/data/ETTh1.csv", 
+                 target_column="HUFL", 
+                 feature_columns=['HULL', 'MUFL', 'MULL', 'LUFL', 'LULL', 'OT'],
+                 timestamp_column='date', 
+                 use_gpu='yes', 
+                 results_dir="/server/src/transformer/Sarimax/results"):
         self.use_gpu = use_gpu.lower() in ["yes", "y"]
         self.results_dir = results_dir
         os.makedirs(results_dir, exist_ok=True)

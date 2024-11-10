@@ -2,12 +2,9 @@ import pandas as pd
 import numpy as np
 from Arima import Arima  # Adjust the import path as necessary
 
-def main():
-    # Dataset path
-    dataset_path = '/server/data/ETTh1.csv'
-    
+def main():    
     # ARIMA model
-    arima_model = Arima(dataset_path)
+    arima_model = Arima()
 
     # Specify the column to train on and the ARIMA order
     target_column = 'HUFL' # Column to train on
@@ -27,7 +24,7 @@ def main():
             mse = arima_model.calculate_mse(actual_values, forecasted_values)
             print(f'Mean Squared Error: {mse}')
 
-        # Optionally, plot the seasonal decomposition
+        # Plot the forecast
         decomposition_result = arima_model.plot_decomposition(target_column)
         print(decomposition_result)
 

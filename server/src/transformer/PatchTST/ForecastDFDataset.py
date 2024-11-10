@@ -1,9 +1,8 @@
 import pandas as pd
 import copy
 from typing import List
-from models.BaseDFDataset import BaseDFDataset, np_to_torch
+from .BaseDFDataset import BaseDFDataset, np_to_torch
 
-# ForecastDFDataset class
 class ForecastDFDataset(BaseDFDataset):
     def __init__(
         self,

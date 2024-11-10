@@ -1,23 +1,20 @@
+# test.py
+import sys
+import os
 import pandas as pd
-import numpy as np
-from PatchTST import PatchTST
 from pathlib import Path
 
+# Add the src/transformer path to sys.path so PatchTST can be imported
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "/server/src")))
+
+# Now you can import PatchTST
+from transformer.PatchTST import PatchTST
+
 # Define paths
-log_path = "Data/Log"
-model_path = "Data/Model"
 csv_file = "/server/data/ETTh1.csv"  # Path to the original CSV file
 
 # Initialize the PatchTST model
-patch_tst = PatchTST(
-    log_path=log_path,
-    model_path=model_path,
-    context_length=512,
-    forecast_horizon=96,
-    patch_length=32,
-    num_workers=8,
-    batch_size=8
-)
+patch_tst = PatchTST()
 
 # Load and prepare data
 patch_tst.load_data([csv_file])
@@ -26,7 +23,7 @@ patch_tst.load_data([csv_file])
 patch_tst.configure_model()
 
 # Train the model
-patch_tst.train(epochs=20, learning_rate=5e-6)
+#patch_tst.train(epochs=20, learning_rate=5e-6)
 
 # Load the model (skip if already trained)
 patch_tst.load_model()
@@ -37,3 +34,6 @@ new_data = original_data.tail(100).reset_index(drop=True)  # Using the last 100 
 
 # Perform prediction on the extracted data portion
 predictions = patch_tst.predict(new_data)
+
+# Print the predictions to check output
+print(predictions)

@@ -7,7 +7,7 @@ import torch
 from pathlib import Path
 from sklearn.metrics import mean_squared_error
 from sklearn.preprocessing import RobustScaler
-from models.ForecastDFDataset import ForecastDFDataset
+from .ForecastDFDataset import ForecastDFDataset
 from transformers import (
     EarlyStoppingCallback,
     PatchTSTConfig,
@@ -20,7 +20,14 @@ from transformers import (
 warnings.filterwarnings("ignore", module="torch")
 
 class PatchTST:
-    def __init__(self, log_path, model_path, context_length=512, forecast_horizon=96, patch_length=32, num_workers=8, batch_size=8):
+    def __init__(self, 
+                 log_path="/server/src/transformer/PatchTST/Data/Log", 
+                 model_path="/server/src/transformer/PatchTST/Data/Model", 
+                 context_length=512, 
+                 forecast_horizon=96, 
+                 patch_length=32, 
+                 num_workers=8, 
+                 batch_size=8):
         self.log_path = log_path
         self.model_path = model_path
         self.context_length = context_length
@@ -35,7 +42,7 @@ class PatchTST:
         Path(self.log_path).mkdir(parents=True, exist_ok=True)
         Path(self.model_path).mkdir(parents=True, exist_ok=True)
 
-    def load_data(self, csv_files, timestamp_column="date", index_start=1):
+    def load_data(self, csv_files=["/server/data/ETTh1.csv"], timestamp_column="date", index_start=1):
         dataframes = [pd.read_csv(f, parse_dates=[timestamp_column]) for f in csv_files]
         dataset = pd.concat(dataframes, ignore_index=True)
 
@@ -54,9 +61,15 @@ class PatchTST:
         dataset["month"] = dataset[timestamp_column].dt.month.astype(np.float32)
         dataset["hour"] = dataset[timestamp_column].dt.hour.astype(np.float32)
 
-        scaled_values = self.scaler.fit_transform(dataset.iloc[:, index_start:])
+        # Fitting the scaler on the training data (first part of the dataset)
+        train_data = dataset.iloc[:int(len(dataset) * 0.7), index_start:]
+        self.scaler.fit(train_data)
+        
+        # Scaling the dataset
+        scaled_values = self.scaler.transform(dataset.iloc[:, index_start:])
         dataset.iloc[:, index_start:] = scaled_values.astype(np.float32)
 
+        # Feature engineering (lags and rolling stats)
         for col in dataset.columns[index_start:]:
             dataset[f'{col}_lag1'] = dataset[col].shift(1)
             dataset[f'{col}_rolling_mean'] = dataset[col].rolling(window=5).mean()
@@ -68,7 +81,7 @@ class PatchTST:
         num_train = int(len(dataset) * 0.7)
         num_valid = int(len(dataset) * 0.2)
         
-        # Define datasets
+        # Split data into training, validation, and test sets
         self.train_dataset = ForecastDFDataset(
             data_df=dataset.iloc[:num_train].reset_index(drop=True),
             timestamp_column=timestamp_column,
@@ -121,8 +134,13 @@ class PatchTST:
         print(f"Using device: {device}")
         self.model.to(device)
 
+        # Fit the scaler on the training data
+        train_data = self.train_dataset.data_df.iloc[:, 1:]  # excluding the timestamp column
+        self.fit_scaler(train_data)  # Fitting scaler on training data
+
+        # Impostazioni per il salvataggio e la registrazione
         training_args = TrainingArguments(
-            output_dir=self.model_path,
+            output_dir=self.model_path,  # Cartella in cui vengono salvati i checkpoint
             overwrite_output_dir=True,
             num_train_epochs=epochs,
             learning_rate=learning_rate,
@@ -132,21 +150,22 @@ class PatchTST:
             per_device_train_batch_size=self.batch_size,
             per_device_eval_batch_size=self.batch_size,
             dataloader_num_workers=self.num_workers,
-            save_strategy="epoch",
+            save_strategy="epoch",  # Salva un checkpoint ad ogni epoca
             logging_strategy="epoch",
-            save_total_limit=3,
-            logging_dir=self.log_path,
+            save_total_limit=3,  # Mantieni solo gli ultimi 3 checkpoint
+            logging_dir=self.log_path,  # Directory dei log
             load_best_model_at_end=True,
             metric_for_best_model="eval_loss",
             greater_is_better=False,
-            label_names=["future_values"],
+            label_names=["future_values"],  # Etichetta per il calcolo della loss
         )
 
         early_stopping_callback = EarlyStoppingCallback(
-            early_stopping_patience=20,
+            early_stopping_patience=20,  # Quando fermare il training se non c'è miglioramento
             early_stopping_threshold=0.0001,
         )
 
+        # Inizializza il Trainer
         self.trainer = Trainer(
             model=self.model,
             args=training_args,
@@ -155,11 +174,22 @@ class PatchTST:
             callbacks=[early_stopping_callback]
         )
 
+        # Inizia l'allenamento
         self.trainer.train()
 
-        self.model.save_pretrained(self.model_path)
-        print(f"Model saved to {self.model_path}")
-        print("Files saved:", os.listdir(self.model_path))
+        # Forza il salvataggio manuale del modello
+        model_save_path = os.path.join(self.model_path, "pytorch_model.bin")
+        torch.save(self.model.state_dict(), model_save_path)  # Salva solo i pesi
+        print(f"Model saved to {model_save_path}")
+
+        # Salva anche la configurazione, che è essenziale per ricaricare il modello
+        config_save_path = os.path.join(self.model_path, "config.json")
+        self.model.config.to_json_file(config_save_path)
+        print(f"Config saved to {config_save_path}")
+
+        # Verifica i file salvati
+        saved_files = os.listdir(self.model_path)
+        print("Files saved:", saved_files)
 
     def load_model(self):
         if not Path(self.model_path).exists():
@@ -167,8 +197,12 @@ class PatchTST:
         self.model = PatchTSTForPrediction.from_pretrained(self.model_path)
         self.model.to(torch.device("cuda" if torch.cuda.is_available() else "cpu"))
         print(f"Model loaded from {self.model_path}")
+    
+    def fit_scaler(self, training_data):
+        """Adatta il RobustScaler sui dati di addestramento"""
+        self.scaler.fit(training_data)
         
-    def predict(self, new_data, timestamp_column="date", output_csv="results/forecasted.csv"):
+    def predict(self, new_data, timestamp_column="date", output_csv="/server/src/transformer/PatchTST/results/forecasted.csv"):
         Path("results").mkdir(parents=True, exist_ok=True)
 
         if self.model is None:

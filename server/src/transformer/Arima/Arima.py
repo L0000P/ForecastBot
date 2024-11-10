@@ -9,7 +9,7 @@ from sklearn.preprocessing import MinMaxScaler
 import joblib
 
 class Arima:
-    def __init__(self, dataset_path="/server/data/ETTh1.csv", timestamp_column='date', use_gpu='yes', result_dir="/server/src/transformers/Arima/results"):
+    def __init__(self, dataset_path="/server/data/ETTh1.csv", timestamp_column='date', use_gpu='yes', result_dir="/server/src/transformer/Arima/results"):
         os.makedirs(result_dir, exist_ok=True)
         self.use_gpu = use_gpu
         self.result_dir = result_dir
