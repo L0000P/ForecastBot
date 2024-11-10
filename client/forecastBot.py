@@ -1,48 +1,57 @@
-from openai import OpenAI
-import streamlit as st
 import os
+import requests
+import streamlit as st
 
-default_openai_api_key = os.getenv("OPENAI_API_KEY")
+# Endpoint URL
+CHATBOT_URL = os.getenv("CHATBOT_URL")
 
 with st.sidebar:
-    openai_api_key = st.text_input("OpenAI API Key", value=default_openai_api_key, key="chatbot_api_key", type="password")
-    "[Get an OpenAI API key](https://platform.openai.com/account/api-keys)"
-    "[ForecastBot Repo](https://github.com/L0000P/ForecastBot)"
+    st.header("About")
+    st.markdown("[ForecastBot Repo](https://github.com/L0000P/ForecastBot)")
 
 st.title("📈 ForecastBot")
 st.caption("🤖 Chatbot designed to allow users to interact with transformer models")
 
 if "messages" not in st.session_state:
-    st.session_state["messages"] = [{"role": "assistant", "content": "How can I help you?"}]
+    st.session_state.messages = []
 
-for msg in st.session_state.messages:
-    st.chat_message(msg["role"]).write(msg["content"])
+for message in st.session_state.messages:
+    with st.chat_message(message["role"]):
+        if "output" in message.keys():
+            st.markdown(message["output"])
 
-uploaded_file = st.file_uploader("Upload a file for analysis (optional, default dataset is [ETTh1](https://github.com/zhouhaoyi/ETDataset/blob/main/ETT-small/ETTh1.csv))", 
-                                 type=["csv", "txt", "json", "xlsx"])
-if uploaded_file:
-    st.session_state["file_info"] = f"Received file: {uploaded_file.name}"
-    file_preview = uploaded_file.read(1024)
-    st.write("File uploaded successfully.")
-    st.write(file_preview[:500])
-else:
-    file_preview = None
+        if "explanation" in message.keys():
+            with st.status("How was this generated", state="complete"):
+                st.info(message["explanation"])
 
-if prompt := st.chat_input("Type a message..."):
-    if not openai_api_key:
-        st.info("Please add your OpenAI API key to continue.")
-        st.stop()
-        
-    client = OpenAI(api_key=openai_api_key)
-    st.session_state.messages.append({"role": "user", "content": prompt})
-    st.chat_message("user").write(prompt)
-    
-    messages = st.session_state.messages
-    if file_preview and {"role": "user", "content": file_preview.decode()} not in messages:
-        messages.append({"role": "user", "content": file_preview.decode()})
+if prompt := st.chat_input("What do you want to know?"):
+    st.chat_message("user").markdown(prompt)
+    st.session_state.messages.append({"role": "user", "output": prompt})
 
-    response = client.chat.completions.create(model="gpt-3.5-turbo", messages=messages)
-    
-    msg = response.choices[0].message.content
-    st.session_state.messages.append({"role": "assistant", "content": msg})
-    st.chat_message("assistant").write(msg)
+    data = {"query": prompt}
+
+    with st.spinner("Searching for an answer..."):
+        response = requests.post(CHATBOT_URL, json=data)
+
+        if response.status_code == 200:
+            output_text = response.json()["response"]["output"]
+            explanation = output_text
+
+        else:
+            output_text = """An error occurred while processing your message.
+            Please try again or rephrase your message."""
+            explanation = output_text
+
+    if "{" in output_text:
+        st.chat_message("assistant").json(output_text)
+    else:
+        st.chat_message("assistant").markdown(output_text)
+    st.status("How was this generated", state="complete").info(explanation)
+
+    st.session_state.messages.append(
+        {
+            "role": "assistant",
+            "output": output_text,
+            "explanation": explanation,
+        }
+    )
