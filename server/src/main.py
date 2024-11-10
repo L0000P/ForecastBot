@@ -1,17 +1,22 @@
-from fastapi import FastAPI
-from agents import TransformersAgent
+import sys
+sys.path.append('/server/src')
 
+from fastapi import FastAPI, HTTPException
+from Models import QueryRequest, QueryResponse
+from Agents import Agent
 app = FastAPI(name="ForecastBot",
-              descritpiton="Chatbot to Forecast Time Series Dataset using LLM and different transformers models")
+              description="Chatbot to Forecast Time Series Dataset using LLM and different transformers models")
 
-@app.post("/train/{model_name}")
-def train_model(model_name: str, params: dict):
-    agent = TransformersAgent(model_name)
-    agent.train(params)
-    return {"status": "training completed"}
+agent = Agent()
 
-@app.get("/predict/{model_name}")
-def predict_model(model_name: str):
-    agent = TransformersAgent(model_name)
-    prediction = agent.predict()
-    return {"prediction": prediction}
+@app.post("/invoke", response_model=QueryResponse)
+async def invoke_query(request: QueryRequest):  # Request expects a QueryRequest with "query"
+    try:
+        response = agent.invoke(request.query)  # Access "query" directly
+        return QueryResponse(response=response)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/health")
+async def health_check():
+    return {"status": "API is running"}
