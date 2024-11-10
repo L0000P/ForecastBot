@@ -1,6 +1,6 @@
 services:
   server:
-    container_name: forecastbot_server-dev
+    container_name: forecastbot_server
     image: rapidsai/rapidsai:cuda11.8-runtime-ubuntu22.04-py3.10
     entrypoint: /bin/sh ./entrypoint-dev.sh
     working_dir: /server
@@ -24,7 +24,7 @@ services:
       - ./server:/server/
   
   client:
-    container_name: forecastbot_client-dev
+    container_name: forecastbot_client
     image: python:3.10-slim
     entrypoint: /bin/sh ./entrypoint-dev.sh
     working_dir: /client
