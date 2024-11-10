@@ -167,7 +167,7 @@ class Dataset_Custom(Dataset):
         self.root_path = root_path
         self.data_path = data_path
         preprocess_path = os.path.join(self.root_path, self.data_path)
-        self.all_data, self.covariates, self.train_end = eval('preprocess_'+dataset)(preprocess_path)
+        self.all_data, self.covariates, self.train_end = eval('preprocess_elect')(preprocess_path)
         self.all_data = torch.from_numpy(self.all_data).transpose(0, 1)
         self.covariates = torch.from_numpy(self.covariates)
         self.test_start = self.train_end - self.seq_len + 1
@@ -615,4 +615,3 @@ class windTestDataset(Dataset):
         label = label[-self.pred_length:]
 
         return all_data, label, v
-

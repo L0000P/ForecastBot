@@ -215,13 +215,17 @@ def eval_epoch(model, test_dataset, test_loader, opt, epoch):
     return mse, mae, rmse, mape, mspe
 
 
-def train(model, optimizer, scheduler, opt, model_save_dir):
+def train(model, optimizer, scheduler, opt):
     """ Start training. """
 
     best_mse = 100000000
 
     """ prepare dataloader """
     training_dataloader, train_dataset, test_dataloader, test_dataset = prepare_dataloader(opt)
+
+    # Set model save directory to the 'Model' folder
+    model_save_dir = 'Model/{}/{}'.format(opt.data, opt.predict_step)
+    os.makedirs(model_save_dir, exist_ok=True)
 
     best_metrics = []
     for epoch_i in range(opt.epoch):
@@ -248,11 +252,10 @@ def train(model, optimizer, scheduler, opt, model_save_dir):
                     "state_dict": model.state_dict(),
                     "metrics": best_metrics
                 },
-                model_save_dir
+                os.path.join(model_save_dir, 'best_model.pth')  # Save the model with a specific filename
             )
 
     return best_metrics
-
 
 def evaluate(model, opt, model_save_dir):
     """Evaluate preptrained models"""
@@ -284,7 +287,7 @@ def parse_args():
 
     # Path parameters
     parser.add_argument('-data', type=str, default='ETTh1')
-    parser.add_argument('-root_path', type=str, default='../data', help='root path of the data file')
+    parser.add_argument('-root_path', type=str, default='/server/data/', help='root path of the data file')
     parser.add_argument('-data_path', type=str, default='ETTh1.csv', help='data file')
 
     # Dataloader parameters.
@@ -347,21 +350,18 @@ def main(opt, iter_index):
     num_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
     print('[Info] Number of parameters: {}'.format(num_params))
 
-    """ train or evaluate the model """
-    model_save_dir = 'models/LongRange/{}/{}/'.format(opt.data, opt.predict_step)
-    os.makedirs(model_save_dir, exist_ok=True)
-    model_save_dir += 'best_iter{}.pth'.format(iter_index)
     if opt.eval:
         best_metrics = evaluate(model, opt, model_save_dir)
     else:
         """ optimizer and scheduler """
         optimizer = optim.Adam(filter(lambda x: x.requires_grad, model.parameters()), opt.lr)
         scheduler = optim.lr_scheduler.StepLR(optimizer, 1, gamma=opt.lr_step)
-        best_metrics = train(model, optimizer, scheduler, opt, model_save_dir)
+        
+        # Adjusted train call to match expected arguments
+        best_metrics = train(model, optimizer, scheduler, opt)  # Only 4 arguments
 
     print('Iteration best metrics: {}'.format(best_metrics))
     return best_metrics
-
 
 if __name__ == '__main__':
     opt = parse_args()
