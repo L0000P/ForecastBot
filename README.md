@@ -43,6 +43,14 @@ $: ./clip dev up --build
 ```
 or any parameter of `docker compose` you prefer after `dev`.
 
+Pretrain models using dev (inside server container)
+```console
+$: python /server/src/transformer/Arima/test.py     # Pretrain Arima Model 
+$: python /server/src/transformer/Sarimax/test.py   # Pretrain Sarimax Model  
+$: python /server/src/transformer/PatchTST/test.py  # Pretrain PatchTST Model
+```
+
+
 Prod configuration
 ```console
 $: ./clip prod up -d --build
