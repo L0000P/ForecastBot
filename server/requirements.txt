@@ -1,10 +1,10 @@
-langchain
-langchain_openai
-fastapi
-pydantic
-uvicorn
-requests
-python-dotenv
+langchain==0.3.7
+langchain_openai==0.2.6
+fastapi==0.115.4
+pydantic==2.9.2
+uvicorn==0.22.0
+requests==2.32.3
+python-dotenv==1.0.1
 torch==2.4.1
 reformer-pytorch==1.4.4
 accelerate==1.0.1
