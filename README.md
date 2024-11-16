@@ -10,6 +10,14 @@ The app integrates both advanced transformer-based forecasting models (such as I
 and traditional models (ARIMA, SARIMAX), offering a seamless experience for model selection, dataset configuration, 
 and result visualization.
 
+## Architecture
+
+Below is the architectural pattern of **ForecastBot**, showcasing the flow between its main components: the client, the server, and the forecasting models. 
+
+![ForecastBot Architecture](/img/Architecture.png)
+
+
+
 ## Features
 - **Chatbot Interface**: An interactive chatbot built with LLM capabilities, allowing users to interact naturally 
   and get model recommendations based on their input.
