@@ -1,3 +1,4 @@
+.gitignore
 data
 .ipynb_checkpoints
 Data
@@ -10,3 +11,5 @@ plots
 *.pth
 results
 *.todo
+img
+drawio
