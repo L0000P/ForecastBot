@@ -10,9 +10,9 @@ app = FastAPI(name="ForecastBot",
 agent = Agent()
 
 @app.post("/invoke", response_model=QueryResponse)
-async def invoke_query(request: QueryRequest):  # Request expects a QueryRequest with "query"
+async def invoke_query(request: QueryRequest):
     try:
-        response = agent.invoke(request.query)  # Access "query" directly
+        response = agent.invoke(request.query)
         return QueryResponse(response=response)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
