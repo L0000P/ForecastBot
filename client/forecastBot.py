@@ -2,7 +2,6 @@ import os
 import requests
 import streamlit as st
 
-# Endpoint URL
 CHATBOT_URL = os.getenv("CHATBOT_URL")
 
 with st.sidebar:
@@ -31,7 +30,7 @@ if prompt := st.chat_input("What do you want to know?"):
     data = {"query": prompt}
 
     with st.spinner("Searching for an answer..."):
-        response = requests.post(CHATBOT_URL, json=data)
+        response = requests.post(CHATBOT_URL + "/invoke", json=data)
 
         if response.status_code == 200:
             output_text = response.json()["response"]["output"]
